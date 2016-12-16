@@ -45,8 +45,7 @@ public class Nester {
         NestFunction nestFunction = new NestFunction();
         JavaRDD<Row> nestedRDD = keyedIntoRDD.cogroup(keyedFromRDD).values().map(nestFunction);
         
-        StructType nestedSchema = into.schema().add(nestedFieldName, 
-                DataTypes.createArrayType(DataTypes.createStructType(from.schema().fields())));
+        StructType nestedSchema = into.schema().add(nestedFieldName, DataTypes.createArrayType(from.schema()));
         
         DataFrame nested = into.sqlContext().createDataFrame(nestedRDD, nestedSchema);
         
@@ -80,13 +79,13 @@ public class Nester {
             // There should only be one 'into' record per key
             Row intoRow = cogrouped._1().iterator().next();
             Iterable<Row> fromRows = cogrouped._2();
-            int numIntoRowFields = intoRow.size();
+            int intoRowNumFields = intoRow.size();
             
-            Object[] nestedValues = new Object[numIntoRowFields + 1];
-            for (int i = 0; i < numIntoRowFields; i++) {
+            Object[] nestedValues = new Object[intoRowNumFields + 1];
+            for (int i = 0; i < intoRowNumFields; i++) {
                 nestedValues[i] = intoRow.get(i);
             }
-            nestedValues[numIntoRowFields] = fromRows;
+            nestedValues[intoRowNumFields] = fromRows;
             
             Row nested = RowFactory.create(nestedValues);
             
